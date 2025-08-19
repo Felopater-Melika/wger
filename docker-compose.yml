@@ -20,6 +20,9 @@ services:
       - media:/home/wger/media
     expose:
       - 8000
+    environment:
+      - CSRF_TRUSTED_ORIGINS=https://wger.yourdomain.tld
+      - X_FORWARDED_PROTO_HEADER_SET=True
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8000
       interval: 10s
@@ -36,8 +39,12 @@ services:
       - ./config/nginx.conf:/etc/nginx/conf.d/default.conf
       - static:/wger/static:ro
       - media:/wger/media:ro
-    ports:
-      - "80:80"
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.wger.loadbalancer.server.port=80
+      - traefik.http.routers.wger.rule=Host(`wger.lab.felopater.codes`)
+      - traefik.http.routers.wger.entryPoints=https
+      - traefik.http.routers.wger.tls=true
     healthcheck:
       test: service nginx status
       interval: 10s
